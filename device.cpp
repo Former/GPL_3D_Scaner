@@ -27,13 +27,9 @@
 #include <linux/videodev2.h>
 #include "errno.h"
 #include "device.h"
-#include "v4l1.h"
 #include "v4l2.h"
 
 using namespace std;
-
-int Device::gain = -1;
-int Device::shutter = -1;
 
 Device::Device() 
 {
@@ -70,12 +66,7 @@ bool Device::openDevice(unsigned int a_Width, unsigned int a_Height, int a_Forma
     isOpen = true;
     
     std::string driver = "Video4Linux2";
-    if(driver == "Video4Linux1")
-	{
-        v4l = new VideoForLinux1();
-        isV4L2 = false;
-    }
-    else if(driver == "Video4Linux2")
+	if(driver == "Video4Linux2")
 	{
         v4l = new VideoForLinux2();
         isV4L2 = true;
@@ -89,11 +80,11 @@ bool Device::openDevice(unsigned int a_Width, unsigned int a_Height, int a_Forma
             v4l = new VideoForLinux2();
             isV4L2 = true;
         }
-        else
-		{
-            v4l = new VideoForLinux1();
-            isV4L2 = false;
-        }
+//        else
+//		{
+ //           v4l = new VideoForLinux1();
+  //          isV4L2 = false;
+  //      }
     }
 
     v4l->setParameters(fd, a_Format);
@@ -115,12 +106,12 @@ bool Device::mMap(int w, int h)
         return false;
 }
 
-bool Device::getFrame(char **buffer)
+std::vector<unsigned char> Device::getFrame()
 {
     if(v4l)
-        return v4l->getFrame(buffer);
+        return v4l->getFrame();
     else
-        return false;
+        return std::vector<unsigned char>();
 }
 
 bool Device::setResolution(unsigned int width, unsigned int height, unsigned int frameRate)
@@ -139,98 +130,19 @@ bool Device::getResolution(unsigned int &width, unsigned int &height, unsigned i
         return false;
 }
 
-bool Device::setBrightness(unsigned int value)
-{
-    if(v4l)
-        return v4l->setBrightness(value);
-    else
-        return false;
-}
-
-bool Device::getBrightness(unsigned int &value)
-{
-    if(v4l)
-        return v4l->getBrightness(value);
-    else
-        return false;
-}
-
-bool Device::setContrast(unsigned int value)
-{
-    if(v4l)
-        return v4l->setContrast(value);
-    else
-        return false;
-}
-
-bool Device::getContrast(unsigned int &value)
-{
-    if(v4l)
-        return v4l->getContrast(value);
-    else
-        return false;
-}
-
-bool Device::setGamma(unsigned int value)
-{
-    if(v4l)
-        return v4l->setGamma(value);
-    else
-        return false;
-}
-
-bool Device::getGamma(unsigned int &value)
-{
-    if(v4l)
-        return v4l->getGamma(value);
-    else
-        return false;
-}
-
-bool Device::setSaturation(unsigned int value)
-{
-    if(v4l)
-        return v4l->setSaturation(value);
-    else
-        return false;
-}
-
-bool Device::getSaturation(unsigned int &value)
-{
-    if(v4l)
-        return v4l->getSaturation(value);
-    else
-        return false;
-}
-
-bool Device::setVideoStd(video_std value)
-{
-    if(v4l)
-        return v4l->setVideoStd(value);
-    else
-        return false;
-}
-
-bool Device::queryCapabilities( struct video_capability *caps ) /*VIDIOCGCAP*/ 
-{
-    if (ioctl(fd, VIDIOCGCAP, caps) < 0)
-	{
-        perror("VIDIOCGCAP");
-        return false;
-    }
-    return true;
-}
-
 bool Device::queryCapabilities(struct v4l2_capability *cap) /*VIDIOC_QUERYCAP*/
 {
     std::string dev_name = "dev/video0"; //Setting::GetInstance()->GetDeviceFile();
-    if (ioctl (fd, VIDIOC_QUERYCAP, cap) == -1) {
-        if (EINVAL == errno) {
+    if (ioctl (fd, VIDIOC_QUERYCAP, cap) == -1)
+	{
+        if (EINVAL == errno)
+		{
             fprintf (stderr, "%s is not a V4L2 device\n",
                      dev_name.c_str());
             return false;
         } 
-        else {
+        else
+		{
             perror("VIDIOC_QUERYCAP");
             return false;
         }
@@ -246,51 +158,7 @@ bool Device::queryCapabilities(struct v4l2_capability *cap) /*VIDIOC_QUERYCAP*/
 
 bool Device::getResolutionList(wxArrayString &validResolution) 
 {
-    if(!isV4L2) {
-        struct video_capability caps;
-        int minw, minh, maxw, maxh;
-
-        queryCapabilities( &caps );
-
-        minw = caps.minwidth;
-        minh = caps.minheight;
-        maxw = caps.maxwidth;
-        maxh = caps.maxheight;
-
-        int currentw = maxw;
-        int currenth = maxh;
-        std::stringstream ss;
-        std::string str;
-
-        while ( ( currentw >= minw ) && ( currenth >= minh ) ) {
-            ss.str( "" );
-            ss<<currentw<<"x"<<currenth;
-            str = ss.str();
-            validResolution.Add( wxString(str.c_str(), wxConvUTF8) );
-            currentw /= 2;
-            currenth /= 2;
-        }
-    }
-    else {
-        /*struct v4l2_frmsizeenum frmsize;
-        memset(&frmsize, 0, sizeof(struct v4l2_frmsizeenum));
-        if(ioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frmsize)) {
-            perror( "VIDIOC_ENUM_FRAMESIZES" );
-            return false;
-        }
-        std::stringstream ss;
-        std::string str;
-        ss<<frmsize.discrete.width<<"x"<<frmsize.discrete.height;
-        str = ss.str();
-        validResolution.Add( wxString(str.c_str(), wxConvUTF8) );
-        frmsize.index++;        
-        while(!ioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frmsize)) {
-            ss.str( "" );
-            ss<<frmsize.discrete.width<<"x"<<frmsize.discrete.height;
-            str = ss.str();            
-            validResolution.Add( wxString(str.c_str(), wxConvUTF8) );
-            frmsize.index++;
-        }*/
+ {
         int resw, resh;        
         struct v4l2_format fmt;
 
@@ -410,71 +278,6 @@ bool Device::getResolutionList(wxArrayString &validResolution)
             resw = resh * 16 / (float)9;
         }
     }
-}
-
-bool Device::getGain( int *agc ) /* VIDIOCPWCGAGC*/ 
-{
-    if (gain != -1)
-        *agc = gain;
-    else {
-        if (ioctl(fd, VIDIOCPWCGAGC, agc)) {
-            perror("VIDIOCPWCGAGC");
-            return false;
-        }
-    }
-    return true;
-}
-
-bool Device::setGain( int *agc ) /* VIDIOCPWCSAGC*/ {
-    if ( ioctl( fd, VIDIOCPWCSAGC, agc ) ) {
-        perror( "VIDIOCPWCSAGC" );
-        return false;
-    }
-    gain = *agc;
-    return true;
-}
-
-bool Device::getShutter( int *sh ) /* VIDIOCPWCSSHUTTER*/ {
-    if (shutter != -1)
-        *sh = shutter;
-    else {
-        if (ioctl(fd, VIDIOCPWCSSHUTTER, sh)) {
-            perror("VIDIOCPWCGSHUTTER");
-            return false;
-        }
-    }
-    return true;
-}
-
-bool Device::setShutter( int *sh ) /* VIDIOCPWCSSHUTTER*/ 
-{
-    if ( ioctl( fd, VIDIOCPWCSSHUTTER, sh ) ) {
-        perror( "VIDIOCPWCSSHUTTER" );
-        return false;
-    }
-    shutter = *sh;
-    return true;
-}
-
-bool Device::isPWC() 
-{
-    if ( isOpen ) {
-        struct video_capability vcap;
-        if ( !ioctl( fd, VIDIOCGCAP, &vcap ) < 0 )
-            return false;
-        if ( std::string( vcap.name ).find( "Philips" ) != std::string::npos )
-            return true;
-        else {
-            /* No match yet; try the PROBE */
-            struct pwc_probe probe;
-            if ( ioctl( fd, VIDIOCPWCPROBE, &probe ) == 0 ) {
-                if ( strcmp( vcap.name, probe.name ) ) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
 }
 
 void Device::closeDevice() 

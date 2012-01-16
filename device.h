@@ -48,29 +48,14 @@ class Device
         bool openDevice(unsigned int a_Width, unsigned int a_Height, int a_Format);
         /*binded functions*/
         bool mMap(int w, int h);
-        bool getFrame(char **buffer);  
+        std::vector<unsigned char> getFrame();
         bool setResolution(unsigned int width, unsigned int height, unsigned int frameRate=0);
         bool getResolution(unsigned int &width, unsigned int &height, unsigned int &frameRate);
-        bool setBrightness(unsigned int value);
-        bool getBrightness(unsigned int &value);
-        bool setContrast(unsigned int value);
-        bool getContrast(unsigned int &value);
-        bool setGamma(unsigned int value);
-        bool getGamma(unsigned int &value); 
-        bool setSaturation(unsigned int value);
-        bool getSaturation(unsigned int &value); 
         /*end binded functions*/
-        bool queryCapabilities(struct video_capability *caps); /*VIDIOCGCAP*/
         bool queryCapabilities(struct v4l2_capability *cap); /*VIDIOC_QUERYCAPP*/
         bool getResolutionList(wxArrayString &validResolution);
-        bool getGain(int *agc); /* VIDIOCPWCGAGC*/
-        bool setGain(int *agc); /* VIDIOCPWCSAGC*/
-        bool getShutter(int *shutter); /* VIDIOCPWCGSHUTTER*/
-        bool setShutter(int *shutter); /* VIDIOCPWCSSHUTTER*/        
         bool isPWC();
         void setAdjustColors(bool);
-        bool setVideoStd(video_std value);
-        bool IsV4L2() { return true; }
         
     private:
         std::string numpal2string(int num);

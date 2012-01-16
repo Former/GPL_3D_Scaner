@@ -1,4 +1,5 @@
 #include "main.h"
+#include <vector>
 
 IMPLEMENT_APP(MainApp);
 
@@ -31,10 +32,16 @@ void MainDialog::OnCloseDialog(wxCloseEvent& event)
 
 void MainDialog::OnOKClick(wxCommandEvent& event)
 {
-	char* buffer = 0;
-	m_Device->getFrame(&buffer);
+	std::vector<unsigned char> buffer = m_Device->getFrame();
+	
+	if (buffer.empty())
+		return;
+	
+	unsigned char* buf = (unsigned char*)malloc(buffer.size());
+	memcpy(buf, &buffer[0], buffer.size());
+	
 	wxImage wximg(640, 480);
-	wximg.SetData((unsigned char*)buffer);
+	wximg.SetData(buf);
 	
 	wxPaintDC dc(m_DrawWindow);
 	

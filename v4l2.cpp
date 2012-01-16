@@ -222,32 +222,9 @@ bool VideoForLinux2::mMap(int w, int h, int frameRate) {
 
     //setting frame rate
     if(frameRate) {
-
-        /*
-        //many cams doesn't support these calls
-        v4l2_streamparm parm;
-
-        if (ioctl (fd, VIDIOC_G_PARM, &parm) == -1) {
-            perror("VIDIOC_G_PARM");
-        }
-
-        parm.parm.capture.timeperframe.numerator = 1;
-        parm.parm.capture.timeperframe.denominator = frameRate;
-
-        if (ioctl (fd, VIDIOC_S_PARM, &parm) == -1) {
-            perror("VIDIOC_S_PARM");            
-        }
-         */
-
         fmt.fmt.pix.priv &= ~PWC_FPS_FRMASK;
         fmt.fmt.pix.priv |= ( frameRate << PWC_FPS_SHIFT );
     }
-    
-    /*enum v4l2_buf_type type;
-    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (ioctl (fd, VIDIOC_STREAMOFF, &type) == -1)
-        perror("VIDIOC_STREAMOFF"); 
-     */
 
     if (isMapped) {
         closeDevice();
@@ -305,13 +282,6 @@ bool VideoForLinux2::init_mmap()
                 dev_name.c_str());
         return false;
     }
-    
-    /*if(buffers) {
-        for (unsigned int i = 0; i < n_buffers; ++i)
-            if (munmap (buffers[i].start, buffers[i].length) == -1)
-                perror("munmap");
-        free(buffers);
-    }*/
     
     buffers = (buffer*)calloc (req.count, sizeof (*buffers));
     if (!buffers) { 
@@ -372,7 +342,7 @@ bool VideoForLinux2::init_mmap()
     return true;
 }
 
-bool VideoForLinux2::getFrame(char **buffer)
+std::vector<unsigned char> VideoForLinux2::getFrame()
 {
     unsigned int i;
     
@@ -380,7 +350,7 @@ bool VideoForLinux2::getFrame(char **buffer)
     
     if(!isMapped) {
         std::cout<<"Device not mapped"<<std::endl;
-        return false;
+        return std::vector<unsigned char>();
     }
     
     memset(&buf, 0, sizeof(struct v4l2_buffer));
@@ -392,7 +362,7 @@ bool VideoForLinux2::getFrame(char **buffer)
     if (ioctl(fd, VIDIOC_DQBUF, &buf) == -1) {
         switch (errno) {
             case EAGAIN:
-                return false;
+                return std::vector<unsigned char>();
                 
             case EIO:
                 /* Could ignore EIO, see spec. */
@@ -401,33 +371,38 @@ bool VideoForLinux2::getFrame(char **buffer)
                 
             default:
                 perror("VIDIOC_DQBUF");
-                return false;
+                return std::vector<unsigned char>();
         }
     }
 
     assert(buf.index < n_buffers);       
 
-    *buffer = ( char* ) malloc( width*height*3 );
+	m_Buffer.resize(width * height * 3);
+	unsigned char* a_Buffer = &m_Buffer[0];
 
-    if(pixelFormat == V4L2_PIX_FMT_YUV420) {
+    if(pixelFormat == V4L2_PIX_FMT_YUV420)
+	{
         if(adjustColors)
-            ccvt_420p_bgr24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) *buffer );
+            ccvt_420p_bgr24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) a_Buffer );
         else
-            ccvt_420p_rgb24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) *buffer );             
+            ccvt_420p_rgb24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) a_Buffer );             
     }
-    else if(pixelFormat == V4L2_PIX_FMT_UYVY) {
+    else if(pixelFormat == V4L2_PIX_FMT_UYVY)
+	{
         if(adjustColors)
-            ccvt_uyvy_bgr24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) *buffer );
+            ccvt_uyvy_bgr24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) a_Buffer );
         else
-            ccvt_uyvy_rgb24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) *buffer );             
+            ccvt_uyvy_rgb24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) a_Buffer );             
     }
-    else if(pixelFormat == V4L2_PIX_FMT_YUYV) {
+    else if(pixelFormat == V4L2_PIX_FMT_YUYV)
+	{
         if(adjustColors)
-            ccvt_yuyv_bgr24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) *buffer );
+            ccvt_yuyv_bgr24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) a_Buffer );
         else
-            ccvt_yuyv_rgb24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) *buffer );
+            ccvt_yuyv_rgb24( width, height, ( const unsigned char* ) buffers[buf.index].start, ( unsigned char* ) a_Buffer );
     }
-    else if(pixelFormat == V4L2_PIX_FMT_MJPEG || pixelFormat == V4L2_PIX_FMT_JPEG) {
+    else if(pixelFormat == V4L2_PIX_FMT_MJPEG || pixelFormat == V4L2_PIX_FMT_JPEG)
+	{
         //std::cout<<"Using mjpeg..."<<std::endl;
         if (buf.bytesused <= HEADERFRAME1) {
             // Prevent crash on empty image
@@ -437,107 +412,46 @@ bool VideoForLinux2::getFrame(char **buffer)
             unsigned char *tmp_buffer = (unsigned char *)malloc(width*height*3/2);
   //          mjpegtoyuv420p(( const unsigned char* ) buffers[buf.index].start, tmp_buffer, width, height, buf.length);
             if(adjustColors)
-                ccvt_420p_bgr24( width, height, tmp_buffer, ( unsigned char* ) *buffer );
+                ccvt_420p_bgr24( width, height, tmp_buffer, ( unsigned char* ) a_Buffer );
             else
-                ccvt_420p_rgb24( width, height, tmp_buffer, ( unsigned char* ) *buffer );
+                ccvt_420p_rgb24( width, height, tmp_buffer, ( unsigned char* ) a_Buffer );
             free (tmp_buffer);
         }
     }
-    /*else if(pixelFormat == V4L2_PIX_FMT_JPEG || pixelFormat == V4L2_PIX_FMT_MJPEG) {
-
-        if (buf.bytesused <= HEADERFRAME1) {
-            // Prevent crash on empty image
-            std::cout << "Ignoring empty buffer ..." <<std::endl;
-        } else {
-            wxMemoryInputStream in(buffers[buf.index].start, buf.bytesused);
-            wxImage frame;
-            if (!frame.LoadFile(in, wxBITMAP_TYPE_JPEG)) {
-                std::cout << "Error reading jpeg frame" << std::endl;
-                delete *buffer;
-                *buffer = NULL;
-                return false;
-            }
-            memcpy(*buffer, frame.GetData(), width * height * 3);
-            if (adjustColors)
-                convert2bgr((unsigned char*) *buffer, width * height * 3);
-        }
-    }*/
-    else if(pixelFormat == V4L2_PIX_FMT_SN9C10X) {  
+    else if(pixelFormat == V4L2_PIX_FMT_SN9C10X)
+	{  
         unsigned char *tmp_buffer = (unsigned char *)malloc(width*height*4);
         sonix_decompress(tmp_buffer, ( unsigned char* ) buffers[buf.index].start, width, height);
-        bayer2rgb24(( unsigned char* ) *buffer, tmp_buffer, width, height); 
+        bayer2rgb24((unsigned char*)a_Buffer, tmp_buffer, width, height); 
         free(tmp_buffer);
     }
     else if(pixelFormat == V4L2_PIX_FMT_SBGGR8 || 
 		pixelFormat == V4L2_PIX_FMT_SBGGR16 || 
 		pixelFormat == V4L2_PIX_FMT_SGBRG8 ||
 		pixelFormat == V4L2_PIX_FMT_SPCA561 || 
-		pixelFormat ==  V4L2_PIX_FMT_SGRBG8) {         
-        bayer2rgb24(( unsigned char* ) *buffer, ( unsigned char* ) buffers[buf.index].start, width, height); 
+		pixelFormat ==  V4L2_PIX_FMT_SGRBG8)
+	{         
+        bayer2rgb24((unsigned char*)a_Buffer, ( unsigned char* ) buffers[buf.index].start, width, height); 
     }
     else if(pixelFormat == V4L2_PIX_FMT_BGR24 || pixelFormat == V4L2_PIX_FMT_SN9C10X
-            || pixelFormat == V4L2_PIX_FMT_SBGGR8) {
+            || pixelFormat == V4L2_PIX_FMT_SBGGR8)
+	{
  //       if(!adjustColors)
  //           convert2bgr( (unsigned char*)*buffer, width*height*3);   
     }
-    else {
+    else
+	{
         std::cout<<"Unknown pixel format"<<std::endl;
-        return false;
+        return std::vector<unsigned char>();
     }   
     
-    if (ioctl (fd, VIDIOC_QBUF, &buf) == -1) {
+    if (ioctl(fd, VIDIOC_QBUF, &buf) == -1)
+	{
         perror("VIDIOC_QBUF");
-        return false;
+        return std::vector<unsigned char>();
     }
     
-    return true;
-}
-
-bool VideoForLinux2::setVideoStd(video_std std) 
-{
-    struct v4l2_input input;
-    v4l2_std_id std_id;
-
-    memset(&input, 0, sizeof (input));
-
-    if (-1 == ioctl(fd, VIDIOC_G_INPUT, &input.index)) {
-        perror("VIDIOC_G_INPUT");
-        return false;
-    }
-
-    if (-1 == ioctl(fd, VIDIOC_ENUMINPUT, &input)) {
-        perror("VIDIOC_ENUM_INPUT");
-        return false;
-    }
-    
-    int mode;
-    if(std == MODE_PAL) {
-        std_id = V4L2_STD_PAL;
-        if (0 == (input.std & V4L2_STD_PAL)) {
-            perror("Oops. PAL is not supported");
-            return false;
-        }
-    }
-    else if(std == MODE_NTSC) {
-        std_id = V4L2_STD_NTSC;
-        if (0 == (input.std & V4L2_STD_NTSC)) {
-            perror("Oops. NTSC is not supported");
-            return false;
-        }
-    }
-    else {
-        std_id = V4L2_STD_SECAM;
-        if (0 == (input.std & V4L2_STD_SECAM)) {
-            perror("Oops. SECAM is not supported");
-            return false;
-        }        
-    }
-
-    if (-1 == ioctl(fd, VIDIOC_S_STD, &std_id)) {
-        perror("VIDIOC_S_STD");
-        return false;
-    }
-    return true;
+    return m_Buffer;
 }
 
 bool VideoForLinux2::setResolution(unsigned int width, unsigned int height, unsigned int frameRate)
@@ -560,134 +474,6 @@ bool VideoForLinux2::getResolution(unsigned int &width, unsigned int &height, un
     height = fmt.fmt.pix.height;
     frameRate = ( fmt.fmt.pix.priv & PWC_FPS_FRMASK ) >> PWC_FPS_SHIFT;
     printf("width: %d, height %d\n", width, height);
-    return true;
-}
-
-bool VideoForLinux2::setBrightness(unsigned int value)
-{
-    struct v4l2_control control;
-    memset (&control, 0, sizeof (control));
-    control.id = V4L2_CID_BRIGHTNESS;
-    control.value = (int)(((float)(controls.maxbrightness - controls.minbrightness)/(float)65535) * (float)value + controls.minbrightness);
-   
-    if (ioctl (fd, VIDIOC_S_CTRL, &control) == -1) {
-        perror ("VIDIOC_S_CTRL");
-        return false;
-    }
-    
-    return true;    
-}
-
-bool VideoForLinux2::getBrightness(unsigned int &value)
-{
-    struct v4l2_control control;
-    memset (&control, 0, sizeof (control));
-    control.id = V4L2_CID_BRIGHTNESS;
-
-    if (ioctl (fd, VIDIOC_G_CTRL, &control) == 0) {
-        value = (control.value - controls.minbrightness) * (int)((float)65535/(float)(controls.maxbrightness - controls.minbrightness));
-        /* Ignore if V4L2_CID_BRIGHTNESS is unsupported */
-    } 
-    else if (errno != EINVAL) {
-        perror ("VIDIOC_G_CTRL");
-        return false;
-    }        
-    return true;
-}
-
-bool VideoForLinux2::setContrast(unsigned int value)
-{
-    struct v4l2_control control;
-    memset (&control, 0, sizeof (control));
-    control.id = V4L2_CID_CONTRAST;
-    control.value = (int)(((float)(controls.maxcontrast - controls.mincontrast)/(float)65535) * (float)value + controls.mincontrast);
-    
-    if (ioctl (fd, VIDIOC_S_CTRL, &control) == -1) {
-        perror ("VIDIOC_S_CTRL");
-        return false;
-    }
-    
-    return true;      
-}
-
-bool VideoForLinux2::getContrast(unsigned int &value)
-{
-    struct v4l2_control control;
-    memset (&control, 0, sizeof (control));
-    control.id = V4L2_CID_CONTRAST;
-
-    if (ioctl (fd, VIDIOC_G_CTRL, &control) == 0) {
-        value = (control.value - controls.mincontrast) * (int)((float)65535/(float)(controls.maxcontrast - controls.mincontrast));
-        /* Ignore if V4L2_CID_CONTRAST is unsupported */
-    } 
-    else if (errno != EINVAL) {
-        perror ("VIDIOC_G_CTRL");
-        return false;
-    }        
-    return true;
-}
-
-bool VideoForLinux2::setGamma(unsigned int value)
-{
-    struct v4l2_control control;
-    memset (&control, 0, sizeof (control));
-    control.id = V4L2_CID_GAMMA;
-    control.value = (int)(((float)(controls.maxgamma - controls.mingamma)/(float)65535) * (float)value + controls.mingamma);
-    
-    if (ioctl (fd, VIDIOC_S_CTRL, &control) == -1) {
-        perror ("VIDIOC_S_CTRL");
-        return false;
-    }
-    
-    return true;    
-}
-
-bool VideoForLinux2::getGamma(unsigned int &value)
-{
-    struct v4l2_control control;
-    memset (&control, 0, sizeof (control));
-    control.id = V4L2_CID_GAMMA;
-
-    if (ioctl (fd, VIDIOC_G_CTRL, &control) == 0) {
-        value = (control.value - controls.mingamma) * (int)((float)65535/(float)(controls.maxgamma - controls.mingamma));
-        /* Ignore if V4L2_CID_GAMMA is unsupported */
-    } 
-    else if (errno != EINVAL) {
-        perror ("VIDIOC_G_CTRL");
-        return false;
-    }        
-    return true;
-}
-
-bool VideoForLinux2::setSaturation(unsigned int value)
-{
-    struct v4l2_control control;
-    memset (&control, 0, sizeof (control));
-    control.id = V4L2_CID_SATURATION;
-    control.value = (int)(((float)(controls.maxsaturation - controls.minsaturation)/(float)65535) * (float)value + controls.minsaturation);
-    
-    if (ioctl (fd, VIDIOC_S_CTRL, &control) == -1) {
-        perror ("VIDIOC_S_CTRL");
-        return false;
-    }
-    
-    return true;    
-}
-
-bool VideoForLinux2::getSaturation(unsigned int &value)
-{
-    struct v4l2_control control;
-    memset (&control, 0, sizeof (control));
-    control.id = V4L2_CID_SATURATION;
-
-    if (ioctl (fd, VIDIOC_G_CTRL, &control) == 0) {
-        value = (control.value - controls.minsaturation) * (int)((float)65535/(float)(controls.maxsaturation - controls.minsaturation));
-        /* Ignore if V4L2_CID_SATURATION is unsupported */
-    } 
-    else if (errno != EINVAL) {
-        perror ("VIDIOC_G_CTRL");
-        return false;
-    }        
     return true;
 }
 
@@ -779,75 +565,3 @@ void VideoForLinux2::setControls()
     controls.maxsaturation = queryctrl.maximum;
     
 }
-
-void VideoForLinux2::enumerateMenu(struct v4l2_queryctrl &queryctrl, struct v4l2_querymenu querymenu)
-{
-    printf ("  Menu items:\n");
-
-    memset (&querymenu, 0, sizeof (querymenu));
-    querymenu.id = queryctrl.id;
-
-    for (querymenu.index = queryctrl.minimum;
-         querymenu.index <= queryctrl.maximum;
-          querymenu.index++) {
-            if (0 == ioctl (fd, VIDIOC_QUERYMENU, &querymenu)) {
-                    printf ("  %s\n", querymenu.name);
-            } else {
-                    perror ("VIDIOC_QUERYMENU");
-                    exit (EXIT_FAILURE);
-            }
-    }
-}
-
-void VideoForLinux2::enumerateControls()
-{
-    struct v4l2_queryctrl queryctrl;
-    struct v4l2_querymenu querymenu;
-    
-    memset (&queryctrl, 0, sizeof (queryctrl));
-    
-    for (queryctrl.id = V4L2_CID_BASE;
-    queryctrl.id < V4L2_CID_LASTP1;
-    queryctrl.id++) {
-        if (ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl) == 0) {
-            if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED) {
-                printf("Control %s disabled\n", queryctrl.name);
-                continue;
-            }
-            
-            printf("Control %s\n", queryctrl.name);
-            
-            if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
-                enumerateMenu(queryctrl, querymenu);
-        } 
-        else {
-            if (errno == EINVAL) {
-                //perror("VIDIOC_QUERYCTRL");
-                continue;
-            }
-            
-            perror("VIDIOC_QUERYCTRL");
-            exit(EXIT_FAILURE);
-        }
-    }
-    
-    for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
-    queryctrl.id++) {
-        if (0 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)) {
-            if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-                continue;
-            
-            printf("Control %s\n", queryctrl.name);
-            
-            if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
-                enumerateMenu(queryctrl, querymenu);
-        } else {
-            if (errno == EINVAL)
-                break;
-            
-            perror("VIDIOC_QUERYCTRL");
-            exit(EXIT_FAILURE);
-        }
-    }
-}
-

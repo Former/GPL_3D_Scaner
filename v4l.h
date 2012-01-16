@@ -22,6 +22,7 @@
 #define	_VideoForLinux_H
 
 #include <unistd.h>
+#include <vector>
 #include <fcntl.h>
 #include <sys/mman.h>
 #ifdef HAVE_CAMV4L 
@@ -80,18 +81,9 @@ public:
     }
     
     virtual bool mMap(int w, int h, int frameRate=0) = 0;
-    virtual bool getFrame(char **buffer) = 0; 
+    virtual std::vector<unsigned char> getFrame() = 0; 
     virtual bool setResolution(unsigned int width, unsigned int height, unsigned int frameRate=0) = 0;
     virtual bool getResolution(unsigned int &width, unsigned int &height, unsigned int &frameRate) = 0;
-    virtual bool setBrightness(unsigned int value) = 0;
-    virtual bool getBrightness(unsigned int &value) = 0;
-    virtual bool setContrast(unsigned int value) = 0;
-    virtual bool getContrast(unsigned int &value) = 0;
-    virtual bool setGamma(unsigned int value) = 0;
-    virtual bool getGamma(unsigned int &value) = 0;
-    virtual bool setSaturation(unsigned int value) = 0;
-    virtual bool getSaturation(unsigned int &value) = 0;
-    virtual bool setVideoStd(video_std std) = 0;
     
 protected:    
     int video_palette[PALETTE_NUMBER];

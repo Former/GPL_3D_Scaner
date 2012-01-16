@@ -47,26 +47,15 @@ public:
     
     void closeDevice();
     bool mMap(int w, int h, int frameRate=0);
-    bool getFrame(char **buffer);
+    std::vector<unsigned char> getFrame();
     bool setResolution(unsigned int width, unsigned int height, unsigned int frameRate=0);
     bool getResolution(unsigned int &width, unsigned int &height, unsigned int &frameRate);
-    bool setBrightness(unsigned int value);
-    bool getBrightness(unsigned int &value);
-    bool setContrast(unsigned int value);
-    bool getContrast(unsigned int &value);
-    bool setGamma(unsigned int value);
-    bool getGamma(unsigned int &value); 
-    bool setSaturation(unsigned int value);
-    bool getSaturation(unsigned int &value); 
-    bool setVideoStd(video_std std);
 
     int getPixelFormat() {return pixelFormat;}
         
 private:    
     bool init_mmap();
     void setControls();
-    void enumerateMenu(struct v4l2_queryctrl &queryctrl, struct v4l2_querymenu querymenu);
-    void enumerateControls();
     
 private:    
     bool controlsSetted;
@@ -76,7 +65,9 @@ private:
     int pixelFormat;
     unsigned int width, height;
     struct controls controls;
-            
+		
+	std::vector<unsigned char> m_Buffer;
+        
 };
 
 #endif //_VideoForLinux2_H
