@@ -21,7 +21,20 @@
 #ifndef _VideoForLinux2_H
 #define	_VideoForLinux2_H
 
-#include "v4l.h"
+#include <unistd.h>
+#include <vector>
+#include <fcntl.h>
+#include <sys/mman.h>
+#ifdef HAVE_CAMV4L 
+#include <linux/videodev.h>
+#else
+#include <libv4l1-videodev.h>
+#endif
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <string>
 
 #define HEADERFRAME1 0xaf
@@ -31,6 +44,17 @@ struct buffer {
     size_t length;
 };
 
+#define VIDEO_PALETTE_JPEG 21
+#define VIDEO_PALETTE_MJPEG 22
+
+const unsigned int PALETTE_NUMBER = 7;
+
+enum video_std {
+    MODE_PAL,
+    MODE_NTSC,
+    MODE_SECAM,
+    NONE
+};
 
 struct controls {
     int minbrightness, maxbrightness;
@@ -39,10 +63,11 @@ struct controls {
     int minsaturation, maxsaturation;
 };
 
-class VideoForLinux2 : public VideoForLinux
+class VideoForLinux2
 {   
 public:    
     VideoForLinux2();
+
     ~VideoForLinux2();
     
     void closeDevice();
@@ -50,6 +75,18 @@ public:
     std::vector<unsigned char> getFrame();
     bool setResolution(unsigned int width, unsigned int height, unsigned int frameRate=0);
     bool getResolution(unsigned int &width, unsigned int &height, unsigned int &frameRate);
+   
+    void setParameters(int fd, int format)
+    {
+        this->fd=fd;
+        frameFormat=format;
+        this->adjustColors=adjustColors;
+    }
+    
+    void setAdjustColors(bool adjustColors)
+    {
+        this->adjustColors=adjustColors;
+    }
 
     int getPixelFormat() {return pixelFormat;}
         
@@ -67,7 +104,16 @@ private:
     struct controls controls;
 		
 	std::vector<unsigned char> m_Buffer;
-        
+	
+	int video_palette[PALETTE_NUMBER];
+    int fd;
+    bool isMapped;
+    bool canMapDevice;
+    int mmap_size;
+    int frameFormat;
+    int siz;
+    bool adjustColors;   
+    void *map;        
 };
 
 #endif //_VideoForLinux2_H

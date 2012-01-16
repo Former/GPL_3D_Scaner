@@ -35,7 +35,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include "pdp/pwc-ioctl.h"
-#include "v4l.h"
+#include "v4l2.h"
 #include <wx/arrstr.h>
 
 class Device
@@ -69,7 +69,7 @@ class Device
         bool isOpen;
 	int fd;
         struct video_mmap v;
-        VideoForLinux *v4l;    
+        VideoForLinux2 *v4l;    
 };
 
 #endif	/* _device_H */

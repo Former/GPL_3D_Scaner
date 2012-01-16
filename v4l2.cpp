@@ -43,6 +43,18 @@
 
 VideoForLinux2::VideoForLinux2()
 {
+	isMapped=false;
+	canMapDevice=true;
+	adjustColors=false;
+	video_palette[0] = VIDEO_PALETTE_RGB24;
+	video_palette[1] = VIDEO_PALETTE_RGB32;
+	video_palette[2] = VIDEO_PALETTE_YUV420P;
+	video_palette[3] = VIDEO_PALETTE_YUV420;
+	video_palette[4] = VIDEO_PALETTE_YUYV;
+	video_palette[5] = VIDEO_PALETTE_JPEG;
+	video_palette[6] = VIDEO_PALETTE_MJPEG;
+	map=NULL;
+	
     dev_name = "dev/video0";
     buffers = NULL;
     n_buffers = 0;
