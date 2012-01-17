@@ -1,1 +1,1 @@
-./Bin/Debug/gui.o ./Bin/Debug/main.o ./Bin/Debug/device.o ./Bin/Debug/v4l2.o ./Bin/Debug/ccvt.o
+./Bin/Debug/gui.o ./Bin/Debug/main.o ./Bin/Debug/device.o ./Bin/Debug/ccvt.o

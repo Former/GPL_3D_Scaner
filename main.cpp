@@ -16,7 +16,7 @@ bool MainApp::OnInit()
 
 MainDialog::MainDialog(wxWindow *parent) : MainDialogBase( parent )
 {
-	m_Device = new Device();
+	m_Device = new CameraDeviceV4L2();
 	m_Device->openDevice(640, 480, -1);
 }
 

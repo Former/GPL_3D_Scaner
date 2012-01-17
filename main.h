@@ -23,5 +23,5 @@ class MainDialog : public MainDialogBase
 		virtual void OnOKClick( wxCommandEvent& event );
 		virtual void OnCancelClick( wxCommandEvent& event );
 		
-		Device* m_Device;
+		CameraDeviceV4L2* m_Device;
 };

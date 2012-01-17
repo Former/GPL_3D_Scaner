@@ -35,30 +35,62 @@
 #include <fcntl.h>
 #include <string.h>
 #include "pdp/pwc-ioctl.h"
-#include "v4l2.h"
 #include <wx/arrstr.h>
+#include <unistd.h>
+#include <vector>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-class Device
+#include <string>
+
+#define HEADERFRAME1 0xaf
+
+struct buffer {
+    void* start; 
+    size_t length;
+};
+
+#define VIDEO_PALETTE_JPEG 21
+#define VIDEO_PALETTE_MJPEG 22
+
+const unsigned int PALETTE_NUMBER = 7;
+
+struct controls {
+    int minbrightness, maxbrightness;
+    int mincontrast, maxcontrast;
+    int mingamma, maxgamma;
+    int minsaturation, maxsaturation;
+};
+
+class CameraDeviceV4L2
 {
     public:
-        Device();
-        ~Device();
+        CameraDeviceV4L2();
+        ~CameraDeviceV4L2();
         
         void closeDevice();
         bool openDevice(unsigned int a_Width, unsigned int a_Height, int a_Format);
-        /*binded functions*/
-        bool mMap(int w, int h);
+
         std::vector<unsigned char> getFrame();
         bool setResolution(unsigned int width, unsigned int height, unsigned int frameRate=0);
         bool getResolution(unsigned int &width, unsigned int &height, unsigned int &frameRate);
-        /*end binded functions*/
+
         bool queryCapabilities(struct v4l2_capability *cap); /*VIDIOC_QUERYCAPP*/
         bool getResolutionList(wxArrayString &validResolution);
         bool isPWC();
         void setAdjustColors(bool);
+		
+		bool mMap(int w, int h, int frameRate=0);
         
     private:
         std::string numpal2string(int num);
+		
+		bool init_mmap();
+		void setControls();		
     
     private:
         static int gain;
@@ -67,9 +99,26 @@ class Device
         bool isV4L2;
         int frameFormat;
         bool isOpen;
-	int fd;
+		int fd;
         struct video_mmap v;
-        VideoForLinux2 *v4l;    
+	
+	private:    
+		bool controlsSetted;
+		std::string dev_name;
+		struct buffer* buffers;
+		unsigned int n_buffers;
+		int pixelFormat;
+		unsigned int width, height;
+		struct controls controls;
+			
+		std::vector<unsigned char> m_Buffer;
+		
+		int video_palette[PALETTE_NUMBER];
+		bool isMapped;
+		bool canMapDevice;
+		int mmap_size;
+		int siz;
+		void *map;        
 };
 
 #endif	/* _device_H */
