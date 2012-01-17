@@ -1,6 +1,7 @@
 /***************************************************************************
  *   Copyright (C) 2007 by Marco Lorrai                                    *
  *   marco.lorrai@abbeynet.it                                              *
+ *   Changed in 2011 by Alexei Bezborodov								   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,22 +21,7 @@
 
 #pragma once
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#ifdef HAVE_CAMV4L 
-#include <linux/videodev.h>
-#else
-#include <libv4l1-videodev.h>
-#endif
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <string.h>
-#include "pdp/pwc-ioctl.h"
 #include <wx/arrstr.h>
-#include <unistd.h>
 #include <vector>
 #include <string>
 
@@ -77,12 +63,8 @@ private:
 
 	struct Buffer 
 	{
-		Buffer()
-		{
-			Start 	= MAP_FAILED;
-			Length 	= 0;
-		}
-		
+		Buffer();
+
 		void*	Start; 
 		size_t	Length;
 	};

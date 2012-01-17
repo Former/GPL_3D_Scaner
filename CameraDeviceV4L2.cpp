@@ -1,6 +1,7 @@
 /***************************************************************************
  *   Copyright (C) 2007 by Marco Lorrai                                    *
  *   marco.lorrai@abbeynet.it                                              *
+ *   Changed in 2011 by Alexei Bezborodov								   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,16 +19,22 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <stdio.h>
-#include <sys/time.h>
-#include <stdlib.h>
-#include <math.h>
-#include <iostream>
 #include <sstream>
 #include <linux/videodev2.h>
 #include "errno.h"
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include "pdp/pwc-ioctl.h"
+
 #include "CameraDeviceV4L2.h"
 #include "ccvt.h"
+
+CameraDeviceV4L2::Buffer::Buffer()
+{
+	Start 	= MAP_FAILED;
+	Length 	= 0;
+}
 
 CameraDeviceV4L2::CameraDeviceV4L2() 
 {
