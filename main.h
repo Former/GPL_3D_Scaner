@@ -2,7 +2,7 @@
 
 #include <wx/wx.h>
 #include "gui.h"
-#include "device.h"
+#include "CameraDeviceV4L2.h"
 
 class MainApp : public wxApp
 {

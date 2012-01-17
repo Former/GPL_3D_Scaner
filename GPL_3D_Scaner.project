@@ -19,10 +19,10 @@
     <File Name="gui.fbp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="CameraTool">
-    <File Name="device.cpp"/>
-    <File Name="device.h"/>
     <File Name="ccvt.c"/>
     <File Name="ccvt.h"/>
+    <File Name="CameraDeviceV4L2.cpp"/>
+    <File Name="CameraDeviceV4L2.h"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

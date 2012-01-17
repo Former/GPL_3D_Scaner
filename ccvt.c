@@ -380,91 +380,6 @@ static void ccvt_yuyv(int width, int height, const unsigned char *src, unsigned 
     } /* ..for line */
 }
 
-/*void ccvt_yuyv_rgb24_422(int width, int height, const void *src, void *dst) 
-{
-    const unsigned char *s;
-    unsigned char *d;
-//PIXTYPE_rgb24 *d;
-    int l, c;
-    int r, g, b, cr, cg, cb, y1, y2;
-    
-    l = height;
-    s = src;
-    d = dst;
-    while (l--) {
-        c = width >> 2;
-        while (c--) {
-            cb = ((*s - 128) * 454) >> 8;
-            cg = (*s++ - 128) * 88;
-            y1 = *s++;
-            cr = ((*s - 128) * 359) >> 8;
-            cg = (cg + (*s++ - 128) * 183) >> 8;
-            y2 = *s++;
-            r = y1 + cr;
-            b = y1 + cb;
-            g = y1 - cg;
-            SAT(r);
-            SAT(g);
-            SAT(b);
-            *d++ = r;
-            *d++ = g;
-            *d++ = b;
-            r = y2 + cr;
-            b = y2 + cb;
-            g = y2 - cg;
-            SAT(r);
-            SAT(g);
-            SAT(b);
-            *d++ = r;
-            *d++ = g;
-            *d++ = b;
-        }
-    }
-}*/
-
-/*void ccvt_yuyv_bgr24_422(int width, int height, const void *src, void *dst) 
-{
-    const unsigned char *s;
-    PIXTYPE_bgr24 *d;
-    int l, c;
-    int r, g, b, cr, cg, cb, y1, y2;
-    
-    l = height;
-    s = src;
-    d = dst;
-    while (l--) {
-        c = width >> 2;
-        while (c--) {
-            cb = ((*s - 128) * 454) >> 8;
-            cg = (*s++ - 128) * 88;
-            y1 = *s++;
-            cr = ((*s - 128) * 359) >> 8;
-            cg = (cg + (*s++ - 128) * 183) >> 8;
-            y2 = *s++;
-            r = y1 + cr;
-            b = y1 + cb;
-            g = y1 - cg;
-            SAT(r);
-            SAT(g);
-            SAT(b);
-            d->b = b;
-            d->g = g;
-            d->r = r;
-            d++;
-            r = y2 + cr;
-            b = y2 + cb;
-            g = y2 - cg;
-            SAT(r);
-            SAT(g);
-            SAT(b);
-            d->b = b;
-            d->g = g;
-            d->r = r;
-            d++;
-        }
-    }
-}*/
-
 #define CLAMP(x)        ((x)<0?0:((x)>255)?255:(x))
 
 typedef struct {
@@ -541,12 +456,12 @@ static void sonix_decompress_init(code_table_t * table)
  *
  */
 
-int sonix_decompress(unsigned char *outp, unsigned char *inp, int width, int height) {
+int sonix_decompress(unsigned char *outp, const unsigned char *inp, int width, int height) {
     int row, col;
     int val;
     int bitpos;
     unsigned char code;
-    unsigned char *addr;
+    const unsigned char *addr;
     
     /* local storage */
     static code_table_t table[256];
@@ -620,9 +535,10 @@ int sonix_decompress(unsigned char *outp, unsigned char *inp, int width, int hei
  *
  */
 
-void bayer2rgb24(unsigned char *dst, unsigned char *src, long int width, long int height) {
+void bayer2rgb24(unsigned char *dst, const unsigned char *src, long int width, long int height) {
     long int i;
-    unsigned char *rawpt, *scanpt;
+    const unsigned char* rawpt;
+	unsigned char* scanpt;
     long int size;
     
     rawpt = src;
@@ -687,49 +603,7 @@ void bayer2rgb24(unsigned char *dst, unsigned char *src, long int width, long in
     }
     
 }
-/*
-void mjpegtoyuv420p(const unsigned char *src, unsigned char *dst,
-        int width, int height, unsigned int size) {
-    
-    uint8_t *yuv[3];
-    unsigned char *y, *u, *v;
-    int loop;
-    static int interlaced = 0;
 
-    yuv[0] = malloc(width * height * sizeof(yuv[0][0]));
-    yuv[1] = malloc(width * height / 4 * sizeof(yuv[1][0]));
-    yuv[2] = malloc(width * height / 4 * sizeof(yuv[2][0]));
-    
-    int ret = decode_jpeg_raw((unsigned char*)src, size, interlaced, 420, width, height, yuv[0], yuv[1], yuv[2]);
-    if(ret) {
-        interlaced = 1;
-        decode_jpeg_raw((unsigned char*)src, size, interlaced, 420, width, height, yuv[0], yuv[1], yuv[2]);
-    }
-    
-    y=dst;
-    u=y+width*height;
-    v=u+(width*height)/4;
-    memset(y, 0, width*height);
-    memset(u, 0, width*height/4);
-    memset(v, 0, width*height/4);
-    
-    for(loop=0; loop<width*height; loop++) {
-        *dst++=yuv[0][loop];
-    }
-    
-    for(loop=0; loop<width*height/4; loop++) {
-        *dst++=yuv[1][loop];
-    }
-    
-    for(loop=0; loop<width*height/4; loop++) {
-        *dst++=yuv[2][loop];
-    }
-    
-    free(yuv[0]);
-    free(yuv[1]);
-    free(yuv[2]);
-}
-*/
 void ccvt_yuyv_rgb24_422(int width, int height, const void *src, void *dst) {
     ccvt_uyvy(width, height, (unsigned char *)src, (unsigned char *)dst, PUSH_RGB24);
 }

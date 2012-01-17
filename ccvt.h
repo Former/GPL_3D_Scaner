@@ -103,10 +103,8 @@ void ccvt_uyvy_rgb24(int width, int height, const void *const src, void *const d
 void ccvt_uyvy_bgr24(int width, int height, const void *const src, void *const dst);
 
 /*taken from motion sources*/
-//void mjpegtoyuv420p(const unsigned char *src, unsigned char *dst,
-//    int width, int height, unsigned int size);
-int sonix_decompress(unsigned char *outp, unsigned char *inp, int width, int height);
-void bayer2rgb24(unsigned char *dst, unsigned char *src, long int width, long int height);
+int sonix_decompress(unsigned char *outp, const unsigned char *inp, int width, int height);
+void bayer2rgb24(unsigned char *dst, const unsigned char *src, long int width, long int height);
 
 #define CLIP(color) (unsigned char)(((color)>0xFF)?0xff:(((color)<0)?0:(color)))
 

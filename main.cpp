@@ -14,10 +14,13 @@ bool MainApp::OnInit()
 	return true;
 }
 
-MainDialog::MainDialog(wxWindow *parent) : MainDialogBase( parent )
+MainDialog::MainDialog(wxWindow *parent) : MainDialogBase(parent)
 {
 	m_Device = new CameraDeviceV4L2();
-	m_Device->openDevice(640, 480, -1);
+	m_Device->OpenDevice("/dev/video0");
+	
+	std::vector<CameraDeviceV4L2::PixelFormat> formats = m_Device->GetPixelFormats();
+	m_Device->SetFormat(640, 480, formats[0].FormatID);
 }
 
 MainDialog::~MainDialog()
@@ -32,13 +35,12 @@ void MainDialog::OnCloseDialog(wxCloseEvent& event)
 
 void MainDialog::OnOKClick(wxCommandEvent& event)
 {
-	std::vector<unsigned char> buffer = m_Device->getFrame();
+	unsigned char* buf = (unsigned char*)malloc(640 * 480 * 3);
+	bool result = m_Device->GetFrame(buf);
 	
-	if (buffer.empty())
+	if (!result)
 		return;
 	
-	unsigned char* buf = (unsigned char*)malloc(buffer.size());
-	memcpy(buf, &buffer[0], buffer.size());
 	
 	wxImage wximg(640, 480);
 	wximg.SetData(buf);
