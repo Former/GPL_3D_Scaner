@@ -34,6 +34,12 @@ public:
 		std::string Description;
 	};
 
+	struct Resolution
+	{
+		size_t Width;
+		size_t Height;
+	};
+
 	CameraDeviceV4L2();
 	~CameraDeviceV4L2();
 	
@@ -41,15 +47,17 @@ public:
 	void CloseDevice();
 	bool IsDeviceOpen();
 	
-	std::vector<PixelFormat> GetPixelFormats();
-	bool SetFormat(int a_Width, int a_Height, int a_PixelFormatID, size_t a_FrameRate = 0);
+	std::vector<PixelFormat> 	GetPixelFormats();
+	std::vector<Resolution> 	GetResolutions(int a_PixelFormatID);
 	bool GetResolution(size_t* a_Width, size_t* a_Height, size_t* a_FrameRate);
+
+	bool SetFormat(int a_Width, int a_Height, int a_PixelFormatID, size_t a_FrameRate = 0);
+
 	bool GetFrame(void* a_RGB_Buffer);
 
 	std::string GetLastError();
 
 	void SetAdjustColors(bool a_AdjustColors);
-	bool GetResolutionList(wxArrayString &validResolution);
 
 private:
 	bool IsBuffersMaped();

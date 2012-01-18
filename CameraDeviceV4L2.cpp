@@ -19,7 +19,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <sstream>
+#include <set>
 #include <linux/videodev2.h>
 #include "errno.h"
 #include <sys/mman.h>
@@ -442,125 +442,90 @@ bool CameraDeviceV4L2::QueryCapabilities()
 	return true;
 }
 
-bool CameraDeviceV4L2::GetResolutionList(wxArrayString &validResolution) 
+struct ResolutionForSet
 {
-	int resw, resh;        
-	struct v4l2_format fmt;
+	bool operator < (ResolutionForSet a_OtherRes) const;
+	
+	size_t Width;
+	size_t Height;
+};
 
-	std::stringstream ss;
-	std::string str;
+bool ResolutionForSet::operator < (ResolutionForSet a_OtherRes) const
+{
+	// First in ResolutionSet must be bigger
+	if (Width == a_OtherRes.Width)
+		return Height > a_OtherRes.Height;
+	return Width > a_OtherRes.Width;
+}
 
-	resw = 160;
-	resh = 120;        
 
-	while(resw < 3000) {
-		memset(&fmt, 0, sizeof(struct v4l2_format));
-		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-		fmt.fmt.pix.width = resw;
-		fmt.fmt.pix.height = resh;
-		fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
-		fmt.fmt.pix.pixelformat = m_PixelFormatID;
-
-		if (ioctl (m_DeviceFileHandle, VIDIOC_TRY_FMT, &fmt) == -1) {
-			perror("VIDIOC_TRY_FMT");
-			printf("Resolution %dx%d not valid\n", resw, resh);
-		} else {
-			if ((fmt.fmt.pix.width == resw) && (fmt.fmt.pix.height == resh)) {
-				printf("Resolution %dx%d valid\n", fmt.fmt.pix.width, fmt.fmt.pix.height);                    
-				ss.str("");
-				ss << resw << "x" << resh;
-				str = ss.str();
-				validResolution.Add(wxString(str.c_str(), wxConvUTF8));
-			}
-		}            
-		resh = resh * 1.5;
-		resw = resh * 4 / (float)3;
-	}
-
-	resw = 160;
-	resh = 120;
-
-	while(resw < 3000) {
-		memset(&fmt, 0, sizeof(struct v4l2_format));
-		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-		fmt.fmt.pix.width = resw;
-		fmt.fmt.pix.height = resh;
-		fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
-		fmt.fmt.pix.pixelformat = m_PixelFormatID;
-
-		if (ioctl (m_DeviceFileHandle, VIDIOC_TRY_FMT, &fmt) == -1) {
-			perror("VIDIOC_TRY_FMT");
-			printf("Resolution %dx%d not valid\n", resw, resh);
-		} else {
-			if ((fmt.fmt.pix.width == resw) && (fmt.fmt.pix.height == resh)) {
-				printf("Resolution %dx%d valid\n", fmt.fmt.pix.width, fmt.fmt.pix.height);
-				ss.str("");
-				ss << resw << "x" << resh;
-				str = ss.str();
-				validResolution.Add(wxString(str.c_str(), wxConvUTF8));
+std::vector<CameraDeviceV4L2::Resolution> GetAllPossibleResolutions()
+{ 
+	typedef std::set<ResolutionForSet> ResolutionSet;
+	ResolutionSet resultSet;
+	
+	double possileScale[] = {1.5, 2.0};
+	double possileAspectRatio[] = {4.0/3.0, 16.0/9.0};
+	
+	for (size_t scaleIndex = 0; scaleIndex < sizeof(possileScale)/sizeof(possileScale[0]); scaleIndex++)
+	{
+		for (size_t aspectIndex = 0; aspectIndex < sizeof(possileAspectRatio)/sizeof(possileAspectRatio[0]); aspectIndex++)
+		{
+			size_t width = 160;
+			size_t height = 120;
+			
+			while (width < 5000)
+			{
+				ResolutionForSet res;
+				
+				res.Width = width;
+				res.Height = height;
+				resultSet.insert(res);
+				
+				height = height * possileScale[scaleIndex];
+				width = height * possileAspectRatio[aspectIndex];
 			}
 		}
-		resh = resh * 2;
-		resw = resh * 4 / (float)3;
 	}
+	
+	std::vector<CameraDeviceV4L2::Resolution> result;
+	for (ResolutionSet::iterator it = resultSet.begin(); it != resultSet.end(); ++it)
+	{
+		CameraDeviceV4L2::Resolution res;
+		
+		res.Width = it->Width;
+		res.Height = it->Height;
+		result.push_back(res);
+	}
+	
+	return result;
+}
 
-
-	resw = 160;
-	resh = 90;
-
-	while(resw < 3000) {
+std::vector<CameraDeviceV4L2::Resolution> CameraDeviceV4L2::GetResolutions(int a_PixelFormatID)
+{
+	std::vector<Resolution> result;
+	std::vector<Resolution> allPossible = GetAllPossibleResolutions();
+	
+	for (size_t i = 0; i < allPossible.size(); i++)
+	{
+		struct v4l2_format fmt;
+		
 		memset(&fmt, 0, sizeof(struct v4l2_format));
 		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-		fmt.fmt.pix.width = resw;
-		fmt.fmt.pix.height = resh;
+		fmt.fmt.pix.width = allPossible[i].Width;
+		fmt.fmt.pix.height = allPossible[i].Height;
 		fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
-		fmt.fmt.pix.pixelformat = m_PixelFormatID;
+		fmt.fmt.pix.pixelformat = a_PixelFormatID;
 
-		if (ioctl (m_DeviceFileHandle, VIDIOC_TRY_FMT, &fmt) == -1) {
-			perror("VIDIOC_TRY_FMT");
-			printf("Resolution %dx%d not valid\n", resw, resh);
-		} else {
-			if ((fmt.fmt.pix.width == resw) && (fmt.fmt.pix.height == resh)) {
-				printf("Resolution %dx%d valid\n", fmt.fmt.pix.width, fmt.fmt.pix.height);                    
-				ss.str("");
-				ss << resw << "x" << resh;
-				str = ss.str();
-				validResolution.Add(wxString(str.c_str(), wxConvUTF8));
-			}
-		}
-		resh = resh * 1.5;
-		resw = resh * 16 / (float)9;
+		if (-1 == ioctl(m_DeviceFileHandle, VIDIOC_TRY_FMT, &fmt))
+			continue;
+		
+		if ((fmt.fmt.pix.width == allPossible[i].Width) && (fmt.fmt.pix.height == allPossible[i].Height)) 
+			result.push_back(allPossible[i]);
+
 	}
 
-	resw = 160;
-	resh = 90;
-
-	while(resw < 3000) {
-		memset(&fmt, 0, sizeof(struct v4l2_format));
-		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-		fmt.fmt.pix.width = resw;
-		fmt.fmt.pix.height = resh;
-		fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
-		fmt.fmt.pix.pixelformat = m_PixelFormatID;
-
-		if (ioctl (m_DeviceFileHandle, VIDIOC_TRY_FMT, &fmt) == -1) {
-			perror("VIDIOC_TRY_FMT");
-			printf("Resolution %dx%d not valid\n", resw, resh);
-		} else {
-			if ((fmt.fmt.pix.width == resw) && (fmt.fmt.pix.height == resh)) {
-				printf("Resolution %dx%d valid\n", fmt.fmt.pix.width, fmt.fmt.pix.height);
-				ss.str("");
-				ss << resw << "x" << resh;
-				str = ss.str();
-				validResolution.Add(wxString(str.c_str(), wxConvUTF8));
-			}
-		}
-		resh = resh * 2;
-		resw = resh * 16 / (float)9;
-	}
+	return result;
 }
 

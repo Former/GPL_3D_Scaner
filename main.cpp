@@ -19,7 +19,12 @@ MainDialog::MainDialog(wxWindow *parent) : MainDialogBase(parent)
 	m_Device->OpenDevice("/dev/video0");
 	
 	std::vector<CameraDeviceV4L2::PixelFormat> formats = m_Device->GetPixelFormats();
-	m_Device->SetFormat(640, 480, formats[0].FormatID);
+	const int pixelFormat = formats[0].FormatID;
+
+	std::vector<CameraDeviceV4L2::Resolution> resolutions = m_Device->GetResolutions(pixelFormat);
+	m_CurCamResolution = resolutions[0];
+
+	m_Device->SetFormat(m_CurCamResolution.Width, m_CurCamResolution.Height, pixelFormat);
 }
 
 MainDialog::~MainDialog()
@@ -34,13 +39,13 @@ void MainDialog::OnCloseDialog(wxCloseEvent& event)
 
 void MainDialog::OnOKClick(wxCommandEvent& event)
 {
-	unsigned char* buf = (unsigned char*)malloc(640 * 480 * 3);
+	unsigned char* buf = (unsigned char*)malloc(m_CurCamResolution.Width * m_CurCamResolution.Height * 3);
 	bool result = m_Device->GetFrame(buf);
 	
 	if (!result)
 		return;
 	
-	wxImage wximg(640, 480);
+	wxImage wximg(m_CurCamResolution.Width, m_CurCamResolution.Height);
 	wximg.SetData(buf);
 	
 	wxPaintDC dc(m_DrawWindow);
