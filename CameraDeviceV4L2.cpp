@@ -36,13 +36,14 @@ CameraDeviceV4L2::Buffer::Buffer()
 	Length 	= 0;
 }
 
-CameraDeviceV4L2::CameraDeviceV4L2() 
+CameraDeviceV4L2::CameraDeviceV4L2(size_t a_BufCount) 
 {
 	m_DeviceFileHandle 	= -1;
 	m_AdjustColors 		= 0;
 	m_Width 			= 0;
 	m_Height 			= 0;
 	m_PixelFormatID		= 0;
+	m_BufCount			= a_BufCount;
 }
 
 CameraDeviceV4L2::~CameraDeviceV4L2() 
@@ -190,7 +191,7 @@ bool CameraDeviceV4L2::MapBuffers()
     struct v4l2_requestbuffers reqBuff;
     memset(&reqBuff, 0, sizeof(reqBuff));
     
-    reqBuff.count               = 4;
+    reqBuff.count               = m_BufCount;
     reqBuff.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     reqBuff.memory              = V4L2_MEMORY_MMAP;
     
@@ -208,7 +209,7 @@ bool CameraDeviceV4L2::MapBuffers()
 		}
     }
     
-    if (reqBuff.count < 2)
+    if (reqBuff.count < m_BufCount)
 	{
 		SetLastError("Insufficient buffer memory on " + m_DeviceFileName);
         return false;
@@ -360,6 +361,7 @@ bool CameraDeviceV4L2::GetFrame(void* a_RGB_Buffer)
 		break;
 
 	case V4L2_PIX_FMT_BGR24:
+//  @@@ ToDo:
 //	case V4L2_PIX_FMT_SN9C10X:
 //	case V4L2_PIX_FMT_SBGGR8:
 //		if(!adjustColors)

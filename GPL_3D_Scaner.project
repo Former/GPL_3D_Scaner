@@ -46,6 +46,7 @@
         <![CDATA[
       
       
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -85,6 +86,7 @@
         <![CDATA[
       
       
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -114,4 +116,8 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="Parser3D">
+    <File Name="Parser3D.cpp"/>
+    <File Name="Parser3D.h"/>
+  </VirtualDirectory>
 </CodeLite_Project>

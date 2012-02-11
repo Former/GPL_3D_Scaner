@@ -40,34 +40,37 @@ public:
 		size_t Height;
 	};
 
-	CameraDeviceV4L2();
+	typedef std::vector<PixelFormat> Formats;
+	typedef std::vector<Resolution> Resolutions;
+
+public:
+	CameraDeviceV4L2(size_t a_BufCount = 1);
 	~CameraDeviceV4L2();
 	
-	bool OpenDevice(std::string a_DeviceFileName);
-	void CloseDevice();
-	bool IsDeviceOpen();
+	bool 			OpenDevice(std::string a_DeviceFileName);
+	void 			CloseDevice();
+	bool 			IsDeviceOpen();
 	
-	std::vector<PixelFormat> 	GetPixelFormats();
-	std::vector<Resolution> 	GetResolutions(int a_PixelFormatID);
-	bool GetResolution(size_t* a_Width, size_t* a_Height, size_t* a_FrameRate);
+	Formats			GetPixelFormats();
+	Resolutions		GetResolutions(int a_PixelFormatID);
+	bool 			GetResolution(size_t* a_Width, size_t* a_Height, size_t* a_FrameRate);
 
-	bool SetFormat(int a_Width, int a_Height, int a_PixelFormatID, size_t a_FrameRate = 0);
+	bool 			SetFormat(int a_Width, int a_Height, int a_PixelFormatID, size_t a_FrameRate = 0);
+	void 			SetAdjustColors(bool a_AdjustColors);
 
-	bool GetFrame(void* a_RGB_Buffer);
+	bool 			GetFrame(void* a_RGB_Buffer);
 
-	std::string GetLastError();
-
-	void SetAdjustColors(bool a_AdjustColors);
+	std::string 	GetLastError();
 
 private:
-	bool IsBuffersMaped();
-	bool MapBuffers();
-	void UnMapBuffers();
+	bool 			IsBuffersMaped();
+	bool 			MapBuffers();
+	void			UnMapBuffers();
 	
-	bool QueryCapabilities();
-	bool IsCompatibleFormat(int a_FormatID);
+	bool			QueryCapabilities();
+	bool			IsCompatibleFormat(int a_FormatID);
 
-	void SetLastError(const std::string& a_Error);
+	void			SetLastError(const std::string& a_Error);
 
 	struct Buffer 
 	{
@@ -83,6 +86,7 @@ private:
 	int 		m_DeviceFileHandle;
 	size_t 		m_Width;
 	size_t 		m_Height;
+	size_t 		m_BufCount;
 	std::vector<Buffer> m_Buffers;
 
 	std::string	m_LastError;	
