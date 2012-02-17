@@ -21,6 +21,8 @@ namespace Parser3D
 		return (red + green + blue) / 3;
 	}	
 	
+	//////////////////////////////////////////////////////////////////////////
+
 	CameraCollibrator::CameraCollibrator()
 	{
 		m_Width		= 0;
@@ -43,11 +45,25 @@ namespace Parser3D
 		return m_Height;
 	}
 
-	Point3D CameraCollibrator::CalculatePointer3D(Point2D a_Point1, Point2D a_Point2, double a_RealDistance)
+	//////////////////////////////////////////////////////////////////////////
+
+	SimpleCameraCollibrator::SimpleCameraCollibrator(double a_VerticalAngle, double a_HorisontalAngle, double a_RealBeamDistance)
 	{
-		
+		m_VerticalAngle 	= a_VerticalAngle;
+		m_HorisontalAngle 	= a_HorisontalAngle;
+		m_RealBeamDistance 	= a_RealBeamDistance;
 	}
 
+	Point3D SimpleCameraCollibrator::CalculatePointer3D(Point2D a_Point1, Point2D a_Point2)
+	{
+		const double curBeamDistanse 	= (a_Point1 - a_Point2).length();
+		const Point2D beamMiddle 		= (a_Point1 + a_Point2) / 2.0;
+		const Point2D screenMiddle(GetWidth() / 2.0, GetHeight() / 2.0);
+		
+		
+	
+	}
+	
 	//////////////////////////////////////////////////////////////////////////
 
 	ImageParser::ImageParser(CameraCollibrator* a_Collibrator)
@@ -160,7 +176,7 @@ namespace Parser3D
 		return result;
 	}
 
-	std::vector<Point3D> ImageParser::Parse(RGB* a_RGB_Buffer, double a_RealDistance)
+	std::vector<Point3D> ImageParser::Parse(RGB* a_RGB_Buffer)
 	{
 		
 	}

@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "Points.h"
 
 namespace Parser3D
 {
@@ -19,25 +20,9 @@ namespace Parser3D
 		ColorUnit blue;		
 	};
 
-	class Point3D
-	{
-		Point3D();
-
-		double x;
-		double y;
-		double z;
-	};
-
-	class Point2D
-	{
-		Point2D();
-
-		double x;
-		double y;
-	};
-
 	//////////////////////////////////////////////////////////////////////////
-
+	
+	// Calculate from pixel -> real 3D pointers 
 	class CameraCollibrator
 	{
 	public:
@@ -48,13 +33,28 @@ namespace Parser3D
 		size_t GetWidth() const;
 		size_t GetHeight() const;
 
-		Point3D CalculatePointer3D(Point2D a_Point1, Point2D a_Point2, double a_RealDistance);
+		virtual Point3D CalculatePointer3D(Point2D a_Point1, Point2D a_Point2, double a_RealBeamDistance) = 0;
 
 	protected:
 		size_t m_Width;
 		size_t m_Height;
 	};
 
+	// Простой каллибратор, не дает большой точности, но легко настраивается.
+	class SimpleCameraCollibrator : public CameraCollibrator
+	{
+	public:
+		SimpleCameraCollibrator(double a_VerticalAngle, double a_HorisontalAngle, double a_RealBeamDistance);
+		
+		virtual Point3D CalculatePointer3D(Point2D a_Point1, Point2D a_Point2);
+
+	protected:
+		double m_VerticalAngle;
+		double m_HorisontalAngle;
+		double m_RealBeamDistance; // Расстояние в пикселях между лучами лазера на расстоянии 1 метра от камеры
+	};
+
+	
 	//////////////////////////////////////////////////////////////////////////
 
 	class ImageParser
@@ -71,7 +71,7 @@ namespace Parser3D
 		// Из линии пикселей, выделяет наиболее яркие учас их положение.
 		std::vector<double> PapseLine(const PixelLine& a_Line);
 
-		std::vector<Point3D> Parse(RGB* a_RGB_Buffer, double a_RealDistance);
+		std::vector<Point3D> Parse(RGB* a_RGB_Buffer);
 
 	protected:
 		CameraCollibrator* 	m_Collibrator;		
