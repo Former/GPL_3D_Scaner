@@ -47,11 +47,11 @@ namespace Parser3D
 
 	//////////////////////////////////////////////////////////////////////////
 
-	SimpleCameraCollibrator::SimpleCameraCollibrator(double a_VerticalAngle, double a_HorisontalAngle, double a_RealBeamDistance)
+	SimpleCameraCollibrator::SimpleCameraCollibrator(double a_VerticalTanAngle, double a_HorisontalTanAngle, double a_RealBeamDistance)
 	{
-		m_VerticalAngle 	= a_VerticalAngle;
-		m_HorisontalAngle 	= a_HorisontalAngle;
-		m_RealBeamDistance 	= a_RealBeamDistance;
+		m_VerticalTanAngle 	= a_VerticalTanAngle;
+		m_HorisontalTanAngle= a_HorisontalTanAngle;
+		m_RealBeamDistance 	= a_RealBeamDistance; // 
 	}
 
 	Point3D SimpleCameraCollibrator::CalculatePointer3D(Point2D a_Point1, Point2D a_Point2)
@@ -60,8 +60,21 @@ namespace Parser3D
 		const Point2D beamMiddle 		= (a_Point1 + a_Point2) / 2.0;
 		const Point2D screenMiddle(GetWidth() / 2.0, GetHeight() / 2.0);
 		
+		const double pointDistance = m_RealBeamDistance / curBeamDistanse;
 		
-	
+		Point3D result;
+		
+		const Point2D verticalRatio 	= (beamMiddle - screenMiddle).y / screenMiddle.y * m_VerticalTanAngle;
+		const Point2D horisontalRatio 	= (beamMiddle - screenMiddle).x / screenMiddle.x * m_HorisontalTanAngle;
+		
+		const double someVerticalValue = sqrt(verticalRatio * verticalRatio + 1);
+		const double someHorisontalValue = sqrt(horisontalRatio * horisontalRatio + 1);
+		
+		result.x = pointDistance * horisontalRatio / someHorisontalValue;
+		result.y = pointDistance * verticalRatio / someVerticalValue;
+		result.z = pointDistance / someVerticalValue;
+		
+		return result;
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
@@ -178,6 +191,20 @@ namespace Parser3D
 
 	std::vector<Point3D> ImageParser::Parse(RGB* a_RGB_Buffer)
 	{
+		std::vector<Point3D> result;
 		
+		std::vector<PixelLine> lines = m_Parser.Prepare(a_RGB_Buffer);
+		for (size_t i = 0; i < lines.size(); i++)
+		{
+			std::vector<double> line = m_Parser.PapseLine(lines[i]);
+			if (line.size() != 2)
+				continue;
+			
+			Point3D point = m_Collibrator->CalculatePointer3D(line[0], line[1]);
+			
+			result.push_back(point);
+		}
+		
+		return result;
 	}
 }

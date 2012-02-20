@@ -44,14 +44,14 @@ namespace Parser3D
 	class SimpleCameraCollibrator : public CameraCollibrator
 	{
 	public:
-		SimpleCameraCollibrator(double a_VerticalAngle, double a_HorisontalAngle, double a_RealBeamDistance);
+		SimpleCameraCollibrator(double a_VerticalTanAngle, double a_HorisontalTanAngle, double a_RealBeamDistance);
 		
 		virtual Point3D CalculatePointer3D(Point2D a_Point1, Point2D a_Point2);
 
 	protected:
-		double m_VerticalAngle;
-		double m_HorisontalAngle;
-		double m_RealBeamDistance; // Расстояние в пикселях между лучами лазера на расстоянии 1 метра от камеры
+		double m_VerticalTanAngle;     // Угол от центральной оси камеры до края видимости по вртикали
+		double m_HorisontalTanAngle;	// Угол от центральной оси камеры до края видимости по горизонтали
+		double m_RealBeamDistance; 	// Расстояние в пикселях между лучами лазера на расстоянии 1 метра от камеры
 	};
 
 	
