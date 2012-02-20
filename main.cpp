@@ -31,7 +31,7 @@ MainDialog::MainDialog(wxWindow *parent)
 	Connect(MAIN_TIMER_ID, wxEVT_TIMER, wxTimerEventHandler(MainDialog::OnTimer));
 	
 	m_Timer = new wxTimer(this, MAIN_TIMER_ID);
-	m_Timer->Start(1000);
+	m_Timer->Start(2000);
 }
 
 MainDialog::~MainDialog()
@@ -53,6 +53,21 @@ void MainDialog::OnCancelClick(wxCommandEvent& event)
 	Destroy();
 }
 
+void SaveToFile(std::vector<Point3D> a_Points)
+{
+	int nFile = open("out.obj", O_WRONLY | O_CREAT | O_APPEND, 0666); // O_WRONLY | O_CREAT | 
+	
+	char buf[4096] = {0};
+	for (size_t i = 0; i < a_Points.size(); i++)
+	{
+		Point3D curPoint = a_Points[i];
+		snprintf(buf, sizeof(buf), "v %f %f %f\n", curPoint.x, curPoint.y, curPoint.z);
+		write(nFile, buf, strlen(buf));
+	}
+	
+	close(nFile);
+}
+
 void MainDialog::OnTimer(wxTimerEvent& event)
 {
 	unsigned char* buf = (unsigned char*)malloc(m_CurCamResolution.Width * m_CurCamResolution.Height * 3);
@@ -71,6 +86,8 @@ void MainDialog::OnTimer(wxTimerEvent& event)
 	}
 	
 	std::vector<Point3D> points = m_Parser.Parse((Parser3D::RGB*)buf);
+	
+	SaveToFile(points);
 	
 	wxImage wximg(m_CurCamResolution.Width, m_CurCamResolution.Height);
 	wximg.SetData(buf);
