@@ -1,4 +1,5 @@
 #include "Points.h"
+#include <math.h>
 
 Point2D::Point2D()
 {
@@ -12,39 +13,39 @@ Point2D::Point2D(double a_x, double a_y)
 	y = a_y;
 }
 
-const Point2D& Point2D::operator + (const Point2D& a_Value1, const Point2D& a_Value2) const
+const Point2D Point2D::operator + (const Point2D& a_Value) const
 {
-	return Point2D(a_Value1.x + a_Value2.x, a_Value1.y + a_Value2.y);
+	return Point2D(x + a_Value.x, y + a_Value.y);
 }
 
-const Point2D& Point2D::operator - (const Point2D& a_Value1, const Point2D& a_Value2) const
+const Point2D Point2D::operator - (const Point2D& a_Value) const
 {
-	return Point2D(a_Value1.x - a_Value2.x, a_Value1.y - a_Value2.y);
+	return Point2D(x - a_Value.x, y - a_Value.y);
 }
 
-double Point2D::operator * (const Point2D& a_Value1, const Point2D& a_Value2) const
+double Point2D::operator * (const Point2D& a_Value) const
 {
-	return (a_Value1.x * a_Value2.x + a_Value1.y * a_Value2.y);
+	return (x * a_Value.x + y * a_Value.y);
 }
 
-const Point2D& Point2D::operator + (const double& a_Value) const
+const Point2D Point2D::operator + (const double& a_Value) const
 {
-	return Point2D(a_Value1.x + a_Value, a_Value1.y + a_Value);
+	return Point2D(x + a_Value, y + a_Value);
 }
 
-const Point2D& Point2D::operator - (const double& a_Value) const
+const Point2D Point2D::operator - (const double& a_Value) const
 {
-	return Point2D(a_Value1.x - a_Value, a_Value1.y - a_Value);
+	return Point2D(x - a_Value, y - a_Value);
 }
 
-const Point2D& Point2D::operator * (const double& a_Value) const
+const Point2D Point2D::operator * (const double& a_Value) const
 {
-	return Point2D(a_Value1.x * a_Value, a_Value1.y * a_Value);
+	return Point2D(x * a_Value, y * a_Value);
 }
 
-const Point2D& Point2D::operator / (const double& a_Value) const
+const Point2D Point2D::operator / (const double& a_Value) const
 {
-	return Point2D(a_Value1.x / a_Value, a_Value1.y / a_Value);
+	return Point2D(x / a_Value, y / a_Value);
 }
 
 double Point2D::length() const
@@ -74,39 +75,39 @@ Point3D::Point3D(double a_x, double a_y, double a_z)
 	z = a_z;
 }
 
-const Point3D& Point3D::operator + (const Point3D& a_Value1, const Point3D& a_Value2) const
+const Point3D Point3D::operator + (const Point3D& a_Value) const
 {
-	return Point3D(a_Value1.x + a_Value2.x, a_Value1.y + a_Value2.y, a_Value1.z + a_Value2.z);
+	return Point3D(x + a_Value.x, y + a_Value.y, z + a_Value.z);
 }
 
-const Point3D& Point3D::operator - (const Point3D& a_Value1, const Point3D& a_Value2) const
+const Point3D Point3D::operator - (const Point3D& a_Value) const
 {
-	return Point3D(a_Value1.x - a_Value2.x, a_Value1.y - a_Value2.y, a_Value1.z - a_Value2.z);
+	return Point3D(x - a_Value.x, y - a_Value.y, z - a_Value.z);
 }
 
-double Point3D::operator * (const Point3D& a_Value1, const Point3D& a_Value2) const
+double Point3D::operator * (const Point3D& a_Value) const
 {
-	return (a_Value1.x * a_Value2.x + a_Value1.y * a_Value2.y + a_Value1.z * a_Value2.z);
+	return (x * a_Value.x + y * a_Value.y + z * a_Value.z);
 }
 
-const Point3D& Point3D::operator + (const double& a_Value) const
+const Point3D Point3D::operator + (const double& a_Value) const
 {
-	return Point3D(a_Value1.x + a_Value, a_Value1.y + a_Value, a_Value1.z + a_Value);
+	return Point3D(x + a_Value, y + a_Value, z + a_Value);
 }
 
-const Point3D& Point3D::operator - (const double& a_Value) const
+const Point3D Point3D::operator - (const double& a_Value) const
 {
-	return Point3D(a_Value1.x - a_Value, a_Value1.y - a_Value, a_Value1.z - a_Value);
+	return Point3D(x - a_Value, y - a_Value, z - a_Value);
 }
 
-const Point3D& Point3D::operator * (const double& a_Value) const
+const Point3D Point3D::operator * (const double& a_Value) const
 {
-	return Point3D(a_Value1.x * a_Value, a_Value1.y * a_Value, a_Value1.z * a_Value);
+	return Point3D(x * a_Value, y * a_Value, z * a_Value);
 }
 
-const Point3D& Point3D::operator / (const double& a_Value) const
+const Point3D Point3D::operator / (const double& a_Value) const
 {
-	return Point3D(a_Value1.x / a_Value, a_Value1.y / a_Value, a_Value1.z / a_Value);
+	return Point3D(x / a_Value, y / a_Value, z / a_Value);
 }
 
 double Point3D::length() const

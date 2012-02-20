@@ -47,6 +47,7 @@
       
       
       
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -87,6 +88,7 @@
       
       
       
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -119,5 +121,7 @@
   <VirtualDirectory Name="Parser3D">
     <File Name="Parser3D.cpp"/>
     <File Name="Parser3D.h"/>
+    <File Name="Points.cpp"/>
+    <File Name="Points.h"/>
   </VirtualDirectory>
 </CodeLite_Project>

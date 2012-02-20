@@ -31,5 +31,5 @@ protected:
 	CameraDeviceV4L2::Resolution m_CurCamResolution;
 	wxTimer* m_Timer;
 	Parser3D::ImageParser m_Parser;
-	Parser3D::CameraCollibrator m_Collibrator;
+	Parser3D::SimpleCameraCollibrator m_Collibrator;
 };

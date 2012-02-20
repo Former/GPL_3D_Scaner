@@ -14,7 +14,7 @@ bool MainApp::OnInit()
 }
 
 MainDialog::MainDialog(wxWindow *parent) 
-: MainDialogBase(parent), m_Parser(&m_Collibrator)
+: MainDialogBase(parent), m_Collibrator(1.0, 1.0, 20.0), m_Parser(&m_Collibrator)
 {
 	m_Device = new CameraDeviceV4L2(1);
 	m_Device->OpenDevice("/dev/video0");
@@ -31,7 +31,7 @@ MainDialog::MainDialog(wxWindow *parent)
 	Connect(MAIN_TIMER_ID, wxEVT_TIMER, wxTimerEventHandler(MainDialog::OnTimer));
 	
 	m_Timer = new wxTimer(this, MAIN_TIMER_ID);
-	m_Timer->Start(500);
+	m_Timer->Start(1000);
 }
 
 MainDialog::~MainDialog()
@@ -69,6 +69,8 @@ void MainDialog::OnTimer(wxTimerEvent& event)
 		for (size_t j = 0; j < line.size(); j++)
 			*((Parser3D::RGB*)buf + i + (size_t)line[j] * lines.size()) = mark;
 	}
+	
+	std::vector<Point3D> points = m_Parser.Parse((Parser3D::RGB*)buf);
 	
 	wxImage wximg(m_CurCamResolution.Width, m_CurCamResolution.Height);
 	wximg.SetData(buf);

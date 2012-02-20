@@ -33,7 +33,7 @@ namespace Parser3D
 		size_t GetWidth() const;
 		size_t GetHeight() const;
 
-		virtual Point3D CalculatePointer3D(Point2D a_Point1, Point2D a_Point2, double a_RealBeamDistance) = 0;
+		virtual Point3D CalculatePointer3D(Point2D a_Point1, Point2D a_Point2) = 0;
 
 	protected:
 		size_t m_Width;

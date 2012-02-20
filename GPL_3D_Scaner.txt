@@ -1,1 +1,1 @@
-./Bin/Debug/gui.o ./Bin/Debug/main.o ./Bin/Debug/ccvt.o ./Bin/Debug/CameraDeviceV4L2.o ./Bin/Debug/Parser3D.o
+./Bin/Debug/gui.o ./Bin/Debug/main.o ./Bin/Debug/ccvt.o ./Bin/Debug/CameraDeviceV4L2.o ./Bin/Debug/Parser3D.o ./Bin/Debug/Points.o

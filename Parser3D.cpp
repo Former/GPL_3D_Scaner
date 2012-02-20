@@ -1,4 +1,5 @@
 #include "Parser3D.h"
+#include <math.h>
 
 namespace Parser3D
 {
@@ -64,8 +65,8 @@ namespace Parser3D
 		
 		Point3D result;
 		
-		const Point2D verticalRatio 	= (beamMiddle - screenMiddle).y / screenMiddle.y * m_VerticalTanAngle;
-		const Point2D horisontalRatio 	= (beamMiddle - screenMiddle).x / screenMiddle.x * m_HorisontalTanAngle;
+		const double verticalRatio 	= (beamMiddle - screenMiddle).y / screenMiddle.y * m_VerticalTanAngle;
+		const double horisontalRatio 	= (beamMiddle - screenMiddle).x / screenMiddle.x * m_HorisontalTanAngle;
 		
 		const double someVerticalValue = sqrt(verticalRatio * verticalRatio + 1);
 		const double someHorisontalValue = sqrt(horisontalRatio * horisontalRatio + 1);
@@ -193,14 +194,14 @@ namespace Parser3D
 	{
 		std::vector<Point3D> result;
 		
-		std::vector<PixelLine> lines = m_Parser.Prepare(a_RGB_Buffer);
+		std::vector<PixelLine> lines = Prepare(a_RGB_Buffer);
 		for (size_t i = 0; i < lines.size(); i++)
 		{
-			std::vector<double> line = m_Parser.PapseLine(lines[i]);
+			std::vector<double> line = PapseLine(lines[i]);
 			if (line.size() != 2)
 				continue;
 			
-			Point3D point = m_Collibrator->CalculatePointer3D(line[0], line[1]);
+			Point3D point = m_Collibrator->CalculatePointer3D(Point2D(i, line[0]), Point2D(i, line[1]));
 			
 			result.push_back(point);
 		}
