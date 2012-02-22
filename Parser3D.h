@@ -66,7 +66,7 @@ namespace Parser3D
 		ImageParser(CameraCollibrator* a_Collibrator);
 
 		// To Private
-		std::vector<PixelLine> Prepare(RGB* a_RGB_Buffer);
+		static std::vector<PixelLine> Prepare(RGB* a_RGB_Buffer);
 		
 		// Из линии пикселей, выделяет наиболее яркие учас их положение.
 		std::vector<double> PapseLine(const PixelLine& a_Line);
@@ -74,6 +74,8 @@ namespace Parser3D
 		std::vector<Point3D> Parse(RGB* a_RGB_Buffer);
 
 	protected:
+		static PixelLine MergeLines(const PixelLine* a_Lines, const size_t a_LinesCount);
+
 		CameraCollibrator* 	m_Collibrator;		
 		ColorUnit 			m_MaxColorUnit;
 	};

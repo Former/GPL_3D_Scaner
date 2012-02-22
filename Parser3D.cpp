@@ -189,6 +189,28 @@ namespace Parser3D
 		
 		return result;
 	}
+	
+	PixelLine MergeLines(const PixelLine* a_Lines, const size_t a_LinesCount)
+	{
+		const size_t linesSize = a_Lines[0].size();
+		PixelLine result;
+		
+		for (size_t i = 0; i < linesSize; i++)
+		{
+			size_t value = 0;
+			
+			for (size_t lineIndex = 0; lineIndex < a_LinesCount; lineIndex++)
+			{
+				const PixelLine& line = a_Lines[lineIndex];
+				
+				value += line[i];
+			}
+			
+			result.push_back(value / a_LinesCount);
+		}
+		
+		return result;
+	}
 
 	std::vector<Point3D> ImageParser::Parse(RGB* a_RGB_Buffer)
 	{
